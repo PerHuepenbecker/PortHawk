@@ -1,0 +1,70 @@
+//
+// Created by Per Hüpenbecker on 11.03.25.
+//
+
+#ifndef DOORSCAN_PACKETBUILDER_H
+#define DOORSCAN_PACKETBUILDER_H
+
+#include <vector>
+#include <random>
+#include "../Helpers/helpers.h"
+#include "ProtocolType.h"
+
+class PacketBuilder {
+private:
+    // Randomization members for packet building
+    std::mt19937 random_engine;
+    std::uniform_int_distribution<uint16_t> randomizer;
+
+    // Protocol type for packet creation
+    ProtocolType protocol;
+
+    // Packet buffer
+    std::vector<uint8_t> packet;
+
+    // Packet parameters
+    struct {
+        in_addr ip_src;
+        in_addr ip_dst;
+        uint16_t ip_id = 0;
+        uint8_t ip_ttl = 64;
+        uint16_t port_src = 0;
+        uint16_t port_dst = 0;
+        uint8_t tcp_flags = 0;
+        uint16_t window_size = 65535;
+        uint32_t tcp_seq_num = 0;
+        uint32_t tcp_ack_num = 0;
+    } params;
+
+    uint8_t set_protocol_type(ProtocolType protocol);
+    uint16_t random_port();
+    uint16_t random_seq_number();
+
+public:
+    PacketBuilder(ProtocolType protocol);
+
+    PacketBuilder& set_source_ip(const std::string &ip_src);
+    PacketBuilder& set_destination_ip(const std::string &ip_dst);
+    PacketBuilder& set_port_src(uint16_t port_src);
+    PacketBuilder& set_port_dst(uint16_t port_dst);
+
+    PacketBuilder& set_SYN_flag();
+    PacketBuilder& set_ACK_flag();
+    PacketBuilder& set_RST_flag();
+    PacketBuilder& set_FIN_flag();
+
+    PacketBuilder& set_tcp_flags(uint8_t tcp_flags);
+    PacketBuilder& set_window_size(uint16_t window_size);
+    PacketBuilder& set_tcp_seq_num(uint16_t tcp_seq_num);
+    PacketBuilder& set_tcp_ack_num(uint16_t tcp_ack_num);
+
+    PacketBuilder& build_ip_header();
+    PacketBuilder& build_tcp_header();
+    PacketBuilder& build_udp_header();
+    PacketBuilder& build_icmp_header();
+
+    std::vector<uint8_t> build();
+};
+
+
+#endif //DOORSCAN_PACKETBUILDER_H
