@@ -2,6 +2,7 @@
 // Created by Per Hüpenbecker on 11.03.25.
 //
 
+#include "helpers.h"
 
 // *b: buffer for checksum || len: length of buffer
 unsigned short ip_checksum(void *b, int len){
@@ -28,5 +29,64 @@ unsigned short ip_checksum(void *b, int len){
     // returning the 1's complement of the sum
     unsigned short result = ~sum;
     return result;
+}
+
+unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload){
+    struct {
+        uint32_t src_addr;
+        uint32_t dst_addr;
+        uint8_t zero;
+        uint8_t protocol;
+        uint16_t tcp_len;
+    } pseudo_header;
+
+    pseudo_header.src_addr = ip_header->ip_src.s_addr;
+    pseudo_header.dst_addr = ip_header->ip_dst.s_addr;
+    pseudo_header.zero = 0;
+    pseudo_header.protocol = IPPROTO_TCP;
+    pseudo_header.tcp_len = htons(sizeof(struct tcphdr) + payload.size());
+
+    unsigned short total_len = sizeof(pseudo_header) + sizeof(struct tcphdr) + payload.size();
+    std::vector<uint8_t> buffer(total_len);
+
+    auto pseudo_header_pointer = reinterpret_cast<const uint8_t*>(&pseudo_header);
+    std::copy(pseudo_header_pointer, pseudo_header_pointer+(sizeof(pseudo_header)), buffer.begin());
+
+    auto tcp_header_pointer = reinterpret_cast<const uint8_t*> (&tcp_header);
+    std::copy(tcp_header_pointer, tcp_header_pointer+(sizeof(struct tcphdr)), buffer.begin()+ sizeof(pseudo_header));
+
+    if (!payload.empty()){
+        std::copy(payload.begin(), payload.end(), buffer.begin()+ sizeof(pseudo_header) + sizeof(struct tcphdr));
+    }
+
+    unsigned short checksum = ip_checksum(buffer.data(), total_len);
+
+    return checksum;
+}
+
+std::string get_local_ip(){
+    struct ifaddrs *ifaddr, *ifa;
+    std::string ip_address;
+
+    if(getifaddrs(&ifaddr) == -1){
+        return "";
+    }
+
+    for(ifa = ifaddr; ifa!= nullptr; ifa = ifa->ifa_next){
+        if(ifa->ifa_addr == nullptr) continue;
+
+        if(ifa -> ifa_addr ->sa_family == AF_INET){
+            std::cout << ifa->ifa_name << std::endl;
+            if(strcmp(ifa->ifa_name, "lo0") != 0) {
+                char host[INET_ADDRSTRLEN];
+                struct sockaddr_in *addr = (struct sockaddr_in*) ifa->ifa_addr;
+                inet_ntop(AF_INET, &(addr->sin_addr), host, INET_ADDRSTRLEN);
+                ip_address = host;
+                break;
+            }
+        }
+    }
+    freeifaddrs(ifaddr);
+    return ip_address;
 }
 
