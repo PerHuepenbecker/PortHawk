@@ -19,6 +19,13 @@ private:
     // Protocol type for packet creation
     ProtocolType protocol;
 
+    // Source IP address as a class attribute. I decided to but it here as a standard option to keep
+    // the signature of the build_packet function in SynScan.h clean and simple. It remains possible
+    // to change the source ip here for some advanced scanning setup with possible redirections.
+
+    std::string source_ip;
+    in_port_t source_port;
+
     // Packet buffer
     std::vector<uint8_t> packet;
 
@@ -34,14 +41,20 @@ private:
         uint16_t window_size = 65535;
         uint32_t tcp_seq_num = 0;
         uint32_t tcp_ack_num = 0;
+        uint16_t payload_size = 0;
+        std::vector<uint8_t> payload = {};
     } params;
 
     uint8_t set_protocol_type(ProtocolType protocol);
     uint16_t random_port();
     uint16_t random_seq_number();
 
+    PacketBuilder& update_ip_header(size_t payload_len);
+    PacketBuilder& update_tcp_checksum(size_t );
+
+
 public:
-    PacketBuilder(ProtocolType protocol);
+    explicit PacketBuilder(ProtocolType protocol, std::string source_ip, in_port_t source_port);
 
     PacketBuilder& set_source_ip(const std::string &ip_src);
     PacketBuilder& set_destination_ip(const std::string &ip_dst);
@@ -62,6 +75,8 @@ public:
     PacketBuilder& build_tcp_header();
     PacketBuilder& build_udp_header();
     PacketBuilder& build_icmp_header();
+
+    PacketBuilder& add_payload(const std::vector<uint8_t> &payload);
 
     std::vector<uint8_t> build();
 };

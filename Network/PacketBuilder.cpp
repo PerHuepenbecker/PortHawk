@@ -5,13 +5,16 @@
 #include "PacketBuilder.h"
 
 
-PacketBuilder::PacketBuilder(ProtocolType protocol) : protocol(protocol) {
-
+PacketBuilder::PacketBuilder(ProtocolType protocol, std::string source_ip, in_port_t source_port) : protocol(protocol), source_ip(source_ip) {
     random_engine = std::mt19937(std::random_device()());
     randomizer = std::uniform_int_distribution<uint16_t>(1024, 65535);
 
-    packet.resize(sizeof(struct ip) + sizeof(struct tcphdr));
+    if(!inet_pton(AF_INET, source_ip.c_str(), &params.ip_src)){
+        throw std::invalid_argument("[Source IP] Invalid IP address argument");
+    }
+    params.port_src = source_port;
 
+    packet.resize(sizeof(struct ip) + sizeof(struct tcphdr));
 }
 
 PacketBuilder &PacketBuilder::set_source_ip(const std::string &ip_src) {
@@ -94,7 +97,7 @@ PacketBuilder& PacketBuilder::build_ip_header(){
     ip_header->ip_hl = 5;
     ip_header->ip_v = 4;
     ip_header->ip_tos = 0;
-    ip_header->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr));
+    ip_header->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr) + params.payload_size);
 
     if(params.ip_id == 0){
         params.ip_id = random_seq_number();
@@ -106,7 +109,7 @@ PacketBuilder& PacketBuilder::build_ip_header(){
     ip_header->ip_src = (in_addr)params.ip_src;
     ip_header->ip_dst = (in_addr)params.ip_dst;
 
-    ip_header->ip_sum = ip_checksum((unsigned short*) packet.data(), sizeof(struct ip));
+    ip_header->ip_sum = Helpers::ip_checksum((unsigned short*) packet.data(), sizeof(struct ip));
 
     return *this;
 }
@@ -133,7 +136,7 @@ PacketBuilder& PacketBuilder::build_tcp_header(){
     tcp_header->th_sum = 0;
     tcp_header->th_urp = 0;
 
-    tcp_header->th_sum = ip_checksum((unsigned short*) tcp_header, sizeof(struct tcphdr));
+    tcp_header->th_sum = Helpers::tcp_checksum((struct ip*) packet.data(), tcp_header, params.payload);
 
     return *this;
 }
@@ -156,4 +159,12 @@ uint16_t PacketBuilder::random_port() {
 
 uint16_t PacketBuilder::random_seq_number() {
     return randomizer(random_engine);
+}
+
+PacketBuilder &PacketBuilder::add_payload(const std::vector<uint8_t> &payload) {
+
+    packet.insert(packet.end(), payload.begin(), payload.end());
+    params.payload_size = payload.size();
+
+    return *this;
 }
