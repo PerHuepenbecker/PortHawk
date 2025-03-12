@@ -17,4 +17,6 @@ add_executable(DoorScan main.cpp
         Network/PacketBuilder.cpp
         Network/PacketBuilder.h
         Network/ProtocolType.h
-        Helpers/helpers.cpp)
+        Helpers/helpers.cpp
+        Network/RawSocket/RawSocket.cpp
+        Network/RawSocket/RawSocket.h)
