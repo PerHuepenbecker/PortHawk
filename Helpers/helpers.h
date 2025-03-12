@@ -18,11 +18,19 @@
 #include <arpa/inet.h>
 
 
-// *b: buffer for checksum || len: length of buffer
-unsigned short ip_checksum(void *b, int len);
+using SOCKET = int;
+using PORT = uint16_t;
 
-unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload);
+#define MTU_ETHERNET 1500
 
-std::string get_local_ip();
+
+namespace Helpers {
+    static unsigned short ip_checksum(void *b, int len);
+
+    static unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload);
+
+    static std::string get_local_ip();
+}
+
 
 #endif //DOORSCAN_HELPERS_H

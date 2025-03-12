@@ -5,7 +5,7 @@
 #include "helpers.h"
 
 // *b: buffer for checksum || len: length of buffer
-unsigned short ip_checksum(void *b, int len){
+unsigned short Helpers::ip_checksum(void *b, int len){
     auto *buf = (unsigned short*) b;
     unsigned int sum = 0;
 
@@ -31,7 +31,7 @@ unsigned short ip_checksum(void *b, int len){
     return result;
 }
 
-unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload){
+unsigned short Helpers::tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload){
     struct {
         uint32_t src_addr;
         uint32_t dst_addr;
@@ -64,7 +64,7 @@ unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std
     return checksum;
 }
 
-std::string get_local_ip(){
+std::string Helpers::get_local_ip(){
     struct ifaddrs *ifaddr, *ifa;
     std::string ip_address;
 
