@@ -97,7 +97,7 @@ PacketBuilder& PacketBuilder::build_ip_header(){
     ip_header->ip_hl = 5;
     ip_header->ip_v = 4;
     ip_header->ip_tos = 0;
-    ip_header->ip_len = htons(sizeof(struct ip) + sizeof(struct tcphdr) + params.payload_size);
+    ip_header->ip_len = (sizeof(struct ip) + sizeof(struct tcphdr) + params.payload_size);
 
     if(params.ip_id == 0){
         params.ip_id = random_seq_number();
