@@ -5,25 +5,38 @@
 #ifndef DOORSCAN_SCANTCPSOCKET_H
 #define DOORSCAN_SCANTCPSOCKET_H
 
-using SOCKET = int;
+#include "ScanStrategy/SynScan.h"
+#include "PacketBuilder.h"
 
-#include "PacketHandler.h"
+
 
 class ScanTCPSocket {
 private:
     SOCKET sock;
-    PacketHandler packetBuilder;
-    std::vector<in_addr_t> target_list_IPv4;
-    std::vector<in6_addr_t> target_list_IPv6;
+    std::unique_ptr<PacketBuilder> packet_builder;
+    std::unique_ptr<ScanStrategy> scan_strategy;
+
+    // Local buffer to store the crafted packets. Taken out of the build packet method and placed
+    // as an attribute here to avoid frequent expensive and unnecessary reallocations. They are being
+    // preallocated in the constructor to house the maximum size of an ethernet packet.
+
+    std::vector<uint8_t> packet_buffer;
+    std::vector<uint8_t> response_buffer;
+
+    std::string source_ip;
+    in_port_t source_port;
+
+    std::vector<std::string> target_list_IPv4;
+    //std::vector<std::string> target_list_IPv6; => After base functionality for IPv4 is implemented
 
     std::vector<unsigned short> target_list_ports;
 
 public:
-    ScanTCPSocket();
+    ScanTCPSocket(std::string source_ip, PORT source_port);
     ~ScanTCPSocket();
 
-    void assign_target_address(in_addr_t target);
-    void assing_target_address(in6_addr_t target);
+    void assign_target_address_v4(std::string target);
+
 
     void assign_target_port(unsigned short first, unsigned short last);
 };
