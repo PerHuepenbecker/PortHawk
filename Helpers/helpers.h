@@ -16,20 +16,29 @@
 #include <ifaddrs.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <thread>
+#include "PortStatus.h"
+#include "ReceiveStatus.h"
+#include <map>
 
+#include <pcap.h>
 
-using SOCKET = int;
 using PORT = uint16_t;
 
 #define MTU_ETHERNET 1500
 
 
 namespace Helpers {
-    static unsigned short ip_checksum(void *b, int len);
 
-    static unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload);
 
-    static std::string get_local_ip();
+    unsigned short ip_checksum(void *b, int len);
+
+    unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload);
+
+    std::string get_local_ip();
+
+    std::string resolve_receive_status(ReceiveStatus status);
+    std::string resolve_port_status(PortStatus status);
 }
 
 

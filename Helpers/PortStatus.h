@@ -10,7 +10,6 @@ enum PortStatus {
     FILTERED,
     CLOSED,
     UNKNOWN,
-    ERROR
 };
 
 #endif //DOORSCAN_PORTSTATUS_H

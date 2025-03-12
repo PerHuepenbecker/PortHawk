@@ -40,6 +40,8 @@ unsigned short Helpers::tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_he
         uint16_t tcp_len;
     } pseudo_header;
 
+    tcp_header->th_sum = 0;
+
     pseudo_header.src_addr = ip_header->ip_src.s_addr;
     pseudo_header.dst_addr = ip_header->ip_dst.s_addr;
     pseudo_header.zero = 0;
@@ -52,11 +54,11 @@ unsigned short Helpers::tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_he
     auto pseudo_header_pointer = reinterpret_cast<const uint8_t*>(&pseudo_header);
     std::copy(pseudo_header_pointer, pseudo_header_pointer+(sizeof(pseudo_header)), buffer.begin());
 
-    auto tcp_header_pointer = reinterpret_cast<const uint8_t*> (&tcp_header);
+    auto tcp_header_pointer = reinterpret_cast<const uint8_t*> (tcp_header);
     std::copy(tcp_header_pointer, tcp_header_pointer+(sizeof(struct tcphdr)), buffer.begin()+ sizeof(pseudo_header));
 
     if (!payload.empty()){
-        std::copy(payload.begin(), payload.end(), buffer.begin()+ sizeof(pseudo_header) + sizeof(struct tcphdr));
+        std::copy(payload.begin(), payload.end(), buffer.begin() + sizeof(pseudo_header) + sizeof(struct tcphdr));
     }
 
     unsigned short checksum = ip_checksum(buffer.data(), total_len);
@@ -90,3 +92,30 @@ std::string Helpers::get_local_ip(){
     return ip_address;
 }
 
+std::string Helpers::resolve_receive_status(ReceiveStatus status){
+    switch (status){
+        case OK:
+            return "ok";
+        case TIMEOUT:
+            return "timeout";
+        case ERROR:
+            return "error";
+        default:
+            return "-";
+    }
+}
+
+std::string Helpers::resolve_port_status(PortStatus status){
+    switch (status){
+        case OPEN:
+            return "open";
+        case CLOSED:
+            return "closed";
+        case FILTERED:
+            return "filtered";
+        case UNKNOWN:
+            return "unknown";
+        default:
+            return "-";
+    }
+}

@@ -3,10 +3,12 @@ project(DoorScan)
 
 set(CMAKE_CXX_STANDARD 20)
 
+
 add_executable(DoorScan main.cpp
         Network/PacketHandler.cpp
         Network/PacketHandler.h
         Helpers/helpers.h
+        Helpers/helpers.cpp
         Network/ScanTCPSocket.cpp
         Network/ScanTCPSocket.h
         Network/ScanSocketPool.cpp
@@ -17,6 +19,14 @@ add_executable(DoorScan main.cpp
         Network/PacketBuilder.cpp
         Network/PacketBuilder.h
         Network/ProtocolType.h
-        Helpers/helpers.cpp
+
         Network/RawSocket/RawSocket.cpp
-        Network/RawSocket/RawSocket.h)
+        Network/RawSocket/RawSocket.h
+        Helpers/PortStatus.h
+        Network/Datastructures/ScanResult.h
+        Helpers/ReceiveStatus.h
+        Network/PcapReceiver/PcapReceiver.cpp
+        Network/PcapReceiver/PcapReceiver.h
+)
+
+target_link_libraries(DoorScan -lpcap)
