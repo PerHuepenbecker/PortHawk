@@ -7,12 +7,16 @@
 
 #include "ScanStrategy/SynScan.h"
 #include "PacketBuilder.h"
+#include "RawSocket/RawSocket.h"
 
+#include <unordered_map>
 
 
 class ScanTCPSocket {
 private:
-    SOCKET sock;
+    // RawSocket object that wraps the send and receive functions for the ScanTCPSocket
+    RawSocket socket;
+
     std::unique_ptr<PacketBuilder> packet_builder;
     std::unique_ptr<ScanStrategy> scan_strategy;
 
@@ -22,6 +26,7 @@ private:
 
     std::vector<uint8_t> packet_buffer;
     std::vector<uint8_t> response_buffer;
+    ssize_t response_size;
 
     std::string source_ip;
     in_port_t source_port;
@@ -31,14 +36,18 @@ private:
 
     std::vector<unsigned short> target_list_ports;
 
+    std::unordered_map<std::string, std::vector<ScanResult>> scan_results;
+
 public:
     ScanTCPSocket(std::string source_ip, PORT source_port);
-    ~ScanTCPSocket();
+    ~ScanTCPSocket() = default;
+
+    bool scan();
+    void print();
 
     void assign_target_address_v4(std::string target);
-
-
     void assign_target_port(unsigned short first, unsigned short last);
+    void assign_target_port(unsigned short port);
 };
 
 

@@ -27,6 +27,7 @@ private:
     in_port_t source_port;
 
     // Packet buffer
+    std::vector<uint8_t> packet_buffer;
     std::vector<uint8_t> packet;
 
     // Packet parameters
@@ -41,7 +42,9 @@ private:
         uint16_t window_size = 65535;
         uint32_t tcp_seq_num = 0;
         uint32_t tcp_ack_num = 0;
+        uint16_t tcp_mss_value = 0;
         uint16_t payload_size = 0;
+        uint8_t th_off = 5;
         std::vector<uint8_t> payload = {};
     } params;
 
@@ -70,11 +73,13 @@ public:
     PacketBuilder& set_window_size(uint16_t window_size);
     PacketBuilder& set_tcp_seq_num(uint16_t tcp_seq_num);
     PacketBuilder& set_tcp_ack_num(uint16_t tcp_ack_num);
+    PacketBuilder& set_mss_value(uint16_t mss_value);
 
     PacketBuilder& build_ip_header();
     PacketBuilder& build_tcp_header();
     PacketBuilder& build_udp_header();
     PacketBuilder& build_icmp_header();
+
 
     PacketBuilder& add_payload(const std::vector<uint8_t> &payload);
 

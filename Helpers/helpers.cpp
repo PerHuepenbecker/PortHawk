@@ -57,7 +57,15 @@ unsigned short Helpers::tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_he
     auto tcp_header_pointer = reinterpret_cast<const uint8_t*> (tcp_header);
     std::copy(tcp_header_pointer, tcp_header_pointer+(sizeof(struct tcphdr)), buffer.begin()+ sizeof(pseudo_header));
 
+    if(payload.empty()){
+       std::cout << "TCP Checksum without payload" << std::endl;
+    }
+
     if (!payload.empty()){
+
+        std::cout << "TCP Checksum with payload" << std::endl;
+        std::cout << "Payload size: " << payload.size() << std::endl;
+
         std::copy(payload.begin(), payload.end(), buffer.begin() + sizeof(pseudo_header) + sizeof(struct tcphdr));
     }
 
@@ -118,4 +126,8 @@ std::string Helpers::resolve_port_status(PortStatus status){
         default:
             return "-";
     }
+}
+
+size_t get_tcp_header_length(const struct tcphdr* tcp_header){
+    return (tcp_header->th_off * 4);
 }

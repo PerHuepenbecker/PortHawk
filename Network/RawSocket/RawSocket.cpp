@@ -4,7 +4,7 @@
 
 #include "RawSocket.h"
 
-RawSocket::RawSocket():socket_fd_send(-1), socket_fd_receive(-1) ,is_open(false) {}
+RawSocket::RawSocket():socket_fd_send(-1), socket_fd_receive(-1), is_open(false) {}
 
 RawSocket::~RawSocket() {
     if(is_open){
@@ -34,7 +34,47 @@ bool RawSocket::open_raw_socket(int protocol) {
     return true;
 }
 
-ReceiveStatus RawSocket::receive_packet(std::vector<uint8_t> &response_buffer, ssize_t &response_size, unsigned short timeout_ms) {
+bool RawSocket::pcap_receive(const std::string& address, uint32_t timeout) {
+    pcap_handle = pcap_open_live("lo0", BUFSIZ, 1, 1000, errbuf);
+
+    if (pcap_handle == nullptr) {
+        std::cerr << "Failed to open device: " << errbuf << std::endl;
+        return false;
+    }
+
+    std::string filter_expression = "src host "+address;
+    struct bpf_program filter{};
+
+    if (pcap_compile(pcap_handle, &filter, filter_expression.c_str(), 0, INADDR_ANY) == -1){
+        std::cerr << "Failed to compile bpf filter" << std::endl;
+        return false;
+    }
+
+    if (pcap_setfilter(pcap_handle, &filter) == -1) {
+        std::cerr << "Failed to install filter: " << pcap_geterr(pcap_handle) << std::endl;
+        return 1;
+    }
+
+    size_t packet_count = 0;
+    bool continue_capture = true;
+    while(continue_capture) {
+
+        int captured = pcap_dispatch(pcap_handle, (2<<15)-1, packet_handler, (u_char*) &continue_capture);
+
+        if(captured == 0){
+            std::cout << "PCAP timeout. No packets received" << std::endl;
+        } else if(captured < 0){
+            std::cerr << "Error capturing packet: " << pcap_geterr(pcap_handle) << std::endl;
+            break;
+        } else {
+            packet_count += captured;
+        }
+    }
+
+    return true;
+}
+
+ReceiveStatus RawSocket::receive_packet(std::vector<uint8_t> &response_buffer, ssize_t &response_size, unsigned short timeout_ms) const {
     if(!is_open){
         std::cerr << "Closes socket cannot receive any network data" << std::endl;
         return ERROR;
@@ -113,4 +153,10 @@ bool RawSocket::send_packet(const std::vector<uint8_t> &packet, const std::strin
 bool RawSocket::close_raw_socket() {
     close(socket_fd_send);
     return true;
+}
+
+static void packet_handler(u_char *user_data, const struct pcap_pkthdr *header, const u_char *packet) {
+
+    std::cout << "Packet captured with langth " << header->len << std::endl;
+
 }

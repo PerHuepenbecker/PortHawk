@@ -12,6 +12,8 @@
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/if_ether.h>
+#include <net/ethernet.h>
 #include <cstring>
 #include <ifaddrs.h>
 #include <unistd.h>
@@ -34,6 +36,8 @@ namespace Helpers {
     unsigned short ip_checksum(void *b, int len);
 
     unsigned short tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_header, std::vector<uint8_t>& payload);
+
+    size_t get_tcp_header_length(const struct tcphdr* tcp_header);
 
     std::string get_local_ip();
 

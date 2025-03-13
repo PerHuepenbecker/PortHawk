@@ -46,6 +46,20 @@ PacketBuilder &PacketBuilder::set_SYN_flag() {
     return *this;
 }
 
+PacketBuilder &PacketBuilder::set_mss_value(uint16_t mss_value){
+    params.tcp_mss_value = mss_value;
+    params.th_off += 1;
+
+    std::vector<uint8_t> mss_option(4);
+    mss_option[0] = 2;
+    mss_option[1] = 4;
+    mss_option[2] = (mss_value >> 8) & 0xFF;
+    mss_option[3] = mss_value & 0xFF;
+
+    this->add_payload(mss_option);
+    return *this;
+}
+
 PacketBuilder &PacketBuilder::set_ACK_flag() {
     params.tcp_flags |= TH_ACK;
     return *this;
@@ -130,13 +144,17 @@ PacketBuilder& PacketBuilder::build_tcp_header(){
 
     tcp_header->th_seq = htonl(params.tcp_seq_num);
     tcp_header->th_ack = htonl(params.tcp_ack_num);
-    tcp_header->th_off = 5;
+    tcp_header->th_off = params.th_off;
+    params.th_off = 5;
     tcp_header->th_flags = params.tcp_flags;
     tcp_header->th_win = htons(params.window_size);
     tcp_header->th_sum = 0;
     tcp_header->th_urp = 0;
 
+    std::cout << "TCP TH_OFF = " << tcp_header->th_off << std::endl;
+
     tcp_header->th_sum = Helpers::tcp_checksum((struct ip*) packet.data(), tcp_header, params.payload);
+
 
     return *this;
 }
@@ -150,6 +168,9 @@ PacketBuilder& PacketBuilder::build_icmp_header(){
 }
 
 std::vector<uint8_t> PacketBuilder::build() {
+
+    std::cout << "[BUILD] Packet size: " << packet.size() << std::endl;
+
     return packet;
 }
 
@@ -162,9 +183,21 @@ uint16_t PacketBuilder::random_seq_number() {
 }
 
 PacketBuilder &PacketBuilder::add_payload(const std::vector<uint8_t> &payload) {
+    size_t header_size = sizeof(struct ip) + sizeof(struct tcphdr);
 
-    packet.insert(packet.end(), payload.begin(), payload.end());
+    std::cout << "Payload size: " << payload.size() << std::endl;
+    std::cout << "Packet size: " << packet.size() << std::endl;
+
+    packet.resize(header_size+payload.size());
+
+    std::cout << "Packet size after: " << packet.size() << std::endl;
+    // Using efficient C functions for buffer management
+
+    memset(packet.data() + header_size, 0, payload.size());
+    memcpy(packet.data() + header_size, payload.data(), payload.size());
+
     params.payload_size = payload.size();
+    params.payload = payload;
 
     return *this;
 }

@@ -13,19 +13,18 @@
 
 [[nodiscard]] std::vector<uint8_t> SynScan::build_packet(PacketBuilder& packet_builder, const std::string &target_ip, uint16_t port) {
 
-    std::vector<uint8_t> dummy_payload(100);
-    std::fill(dummy_payload.begin(), dummy_payload.end(), 0x1);
-
-
     auto packet = packet_builder.set_destination_ip(target_ip)
             .set_port_dst(port)
             .set_SYN_flag()
-            .add_payload(dummy_payload)
+            .set_mss_value(1460)
             .build_ip_header()
             .build_tcp_header()
             .build();
+
+    std::cout << "[SYN_STRATEGY] Packet size: " << packet.size() << std::endl;
     return packet;
 }
+
 
 ScanResult SynScan::interpret_response(const std::vector<uint8_t> &response_packet, ReceiveStatus status, in_port_t target_port) {
     if(status == TIMEOUT){
