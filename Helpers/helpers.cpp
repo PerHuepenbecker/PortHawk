@@ -86,7 +86,7 @@ ConnectionInfo Helpers::get_connection_info(){
         if(ifa->ifa_addr == nullptr) continue;
 
         if(ifa -> ifa_addr ->sa_family == AF_INET){
-            std::cout << ifa->ifa_name << std::endl;
+
             if(strcmp(ifa->ifa_name, "lo0") != 0) {
                 char host[INET_ADDRSTRLEN];
                 struct sockaddr_in *addr = (struct sockaddr_in*) ifa->ifa_addr;

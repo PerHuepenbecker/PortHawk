@@ -88,8 +88,6 @@ void PcapReceiver::process_packet(const struct pcap_pkthdr *header, const u_char
             std::cout << "[PcapReceiver::process_packet] Unknown protocol type" << std::endl;
             std::cout << "[PcapReceiver::process_packet] Protocol type: " << ntohs(ip_header->ip_p) << std::endl;
 
-
-
             for (const u_int8_t* i = packet+ip_header_offset; i < packet+ip_header_offset+sizeof(ip); i++) {
                 std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)(*i) << " ";
             }
@@ -97,14 +95,7 @@ void PcapReceiver::process_packet(const struct pcap_pkthdr *header, const u_char
             return;
     }
 
-    if (!inet_ntop(AF_INET, &(ip_header->ip_src), address_buffer.data(), INET_ADDRSTRLEN)){
-        std::cerr << "Address resolution failed" << std::endl;
-        return;
-    };
-
     tcp_header = reinterpret_cast<const struct tcphdr*>(packet + ip_header_offset + sizeof(struct ip));
-
-    std::cout << "Response from address " << address_buffer.data() << std::endl;
 
     if(tcp_header == nullptr){
         std::cout << "TCP Header == NULL";
