@@ -11,43 +11,39 @@
 
 #include <unordered_map>
 
-
 class ScanTCPSocket {
 private:
     // RawSocket object that wraps the send and receive functions for the ScanTCPSocket
-    RawSocket socket;
+    RawSocket socket_;
 
-    std::unique_ptr<PacketBuilder> packet_builder;
-    std::unique_ptr<ScanStrategy> scan_strategy;
+    std::unique_ptr<PacketBuilder> packet_builder_;
+    std::shared_ptr<ScanStrategy> scan_strategy_;
 
     // Local buffer to store the crafted packets. Taken out of the build packet method and placed
     // as an attribute here to avoid frequent expensive and unnecessary reallocations. They are being
     // preallocated in the constructor to house the maximum size of an ethernet packet.
 
-    std::vector<uint8_t> packet_buffer;
-    std::vector<uint8_t> response_buffer;
-    ssize_t response_size;
+    std::vector<uint8_t> packet_buffer_;
 
-    std::string source_ip;
-    in_port_t source_port;
+    std::string source_ip_;
+    in_port_t source_port_;
+    bool debug_mode;
 
-    std::vector<std::string> target_list_IPv4;
+    std::string target_IPv4;
     //std::vector<std::string> target_list_IPv6; => After base functionality for IPv4 is implemented
 
-    std::vector<unsigned short> target_list_ports;
-
-    std::unordered_map<std::string, std::vector<ScanResult>> scan_results;
+    std::vector<unsigned short> target_list_ports_;
 
 public:
-    ScanTCPSocket(std::string source_ip, PORT source_port);
+    ScanTCPSocket(std::shared_ptr<ScanStrategy> scan_strategy,ConnectionInfo& info, in_port_t source_port = 0, bool debug = false);
     ~ScanTCPSocket() = default;
 
     bool scan();
-    void print();
 
     void assign_target_address_v4(std::string target);
     void assign_target_port(unsigned short first, unsigned short last);
     void assign_target_port(unsigned short port);
+    void set_scan_strategy(std::shared_ptr<ScanStrategy> strategy);
 };
 
 

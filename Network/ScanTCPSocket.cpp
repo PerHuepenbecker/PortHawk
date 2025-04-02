@@ -4,32 +4,35 @@
 
 #include "ScanTCPSocket.h"
 
-ScanTCPSocket::ScanTCPSocket(std::string source_ip_val, in_port_t source_port_val) {
+ScanTCPSocket::ScanTCPSocket(std::shared_ptr<ScanStrategy> scan_strategy,ConnectionInfo& info, in_port_t source_port, bool debug) {
 
-    target_list_IPv4 = {};
     //target_list_IPv6 = {};
-    target_list_ports = {};
-    source_ip = source_ip_val;
+    target_list_ports_ = {};
 
-    // preallocation of the buffers
-    packet_buffer = std::vector<uint8_t>(MTU_ETHERNET);
-    response_buffer = std::vector<uint8_t>(MTU_ETHERNET);
+    source_ip_ = Helpers::get_connection_info().address;
 
-    // default function to assign a local_ip
-    if(source_ip.empty()){
-        source_ip = Helpers::get_local_ip();
-    }
+    // preallocation of the buffer
+    packet_buffer_ = std::vector<uint8_t>(MTU_ETHERNET);
 
-    scan_strategy = std::make_unique<SynScan>();
-    source_port = source_port_val;
-    packet_builder = std::make_unique<PacketBuilder>(ProtocolType::TCP, source_ip, source_port_val);
+    debug_mode = debug;
+
+    scan_strategy_ = scan_strategy;
+    source_port_ = source_port;
+
+    packet_builder_ = std::make_unique<PacketBuilder>(scan_strategy_->get_protocol_type(), source_ip_, source_port);
 
 }
 
 void ScanTCPSocket::assign_target_address_v4(std::string target) {
+    target_IPv4 = target;
 
-    target_list_IPv4.push_back(target);
-    std::cout << "Target address assigned" << std::endl;
+    if(debug_mode){
+        std::cout << "[ScanTCPSocket::assign_target_address_v4] Assigned " << target << "\n";
+    }
+}
+
+void ScanTCPSocket::set_scan_strategy(std::shared_ptr<ScanStrategy> strategy){
+    scan_strategy_ = strategy;
 }
 
 void ScanTCPSocket::assign_target_port(unsigned short first, unsigned short last) {
@@ -39,7 +42,7 @@ void ScanTCPSocket::assign_target_port(unsigned short first, unsigned short last
     }
 
     for(unsigned short i = first; i <= last; i++){
-        target_list_ports.push_back(i);
+        target_list_ports_.push_back(i);
     }
 
     std::cout << "Target port assigned" << std::endl;
@@ -47,49 +50,27 @@ void ScanTCPSocket::assign_target_port(unsigned short first, unsigned short last
 
 bool ScanTCPSocket::scan() {
 
-    if(!socket.open_raw_socket()){
+    if (!socket_.open_raw_socket()) {
         return false;
     }
 
-    for(const auto address: target_list_IPv4){
+    for (const auto port: target_list_ports_) {
 
-        scan_results.insert({address,{}});
+        std::cout << "Scanning " << port << std::endl;
 
-        for(const auto port: target_list_ports){
+        packet_buffer_ = scan_strategy_->build_packet(*packet_builder_, target_IPv4, port);
 
-            std::cout << "Scanning " << port << std::endl;
-
-            packet_buffer = scan_strategy->build_packet(*packet_builder, address, port);
-
-            if(!socket.send_packet(packet_buffer, address)){
-                std::cerr<< "[ScanTCPSocket::scan] Error sending packet" << std::endl;
-            }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-/*            ReceiveStatus status = socket.receive_packet(response_buffer, response_size);
-
-            if(status != ReceiveStatus::ERROR){
-                scan_results[address].push_back(scan_strategy->interpret_response(response_buffer, status, port));
-            } else {
-                scan_results[address].push_back(ScanResult{port, PortStatus::UNKNOWN, status});
-            }*/
+        if (!socket_.send_packet(packet_buffer_, target_IPv4)) {
+            std::cerr << "[ScanTCPSocket::scan] Error sending packet" << std::endl;
         }
 
-    }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-    socket.close_raw_socket();
+    }
+    socket_.close_raw_socket();
     return true;
 }
 
-void ScanTCPSocket::print(){
-    for (const auto& [key, value] : scan_results){
-        std::cout << key << std::endl;
-        for(const auto& element: value){
-            std::cout << "\t" << element.port<< "\t" << Helpers::resolve_port_status(element.status_port) << "\t" << Helpers::resolve_receive_status(element.status_receive) << std::endl;
-        }
-    }
-}
 void ScanTCPSocket::assign_target_port(unsigned short port){
-    assign_target_port(port, port);
-}
+    target_list_ports_.push_back(port);
+    }
