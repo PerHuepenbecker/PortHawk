@@ -21,6 +21,7 @@
 #include <thread>
 #include "PortStatus.h"
 #include "ReceiveStatus.h"
+#include <sstream>
 #include <map>
 
 #include <pcap.h>
@@ -29,6 +30,10 @@ using PORT = uint16_t;
 
 #define MTU_ETHERNET 1500
 
+typedef struct {
+    std::string address;
+    std::string interface_name;
+} ConnectionInfo;
 
 namespace Helpers {
 
@@ -39,7 +44,7 @@ namespace Helpers {
 
     size_t get_tcp_header_length(const struct tcphdr* tcp_header);
 
-    std::string get_local_ip();
+    ConnectionInfo get_connection_info();
 
     std::string resolve_receive_status(ReceiveStatus status);
     std::string resolve_port_status(PortStatus status);

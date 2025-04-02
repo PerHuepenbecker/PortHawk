@@ -74,12 +74,12 @@ unsigned short Helpers::tcp_checksum(struct ip* ip_header, struct tcphdr* tcp_he
     return checksum;
 }
 
-std::string Helpers::get_local_ip(){
+ConnectionInfo Helpers::get_connection_info(){
     struct ifaddrs *ifaddr, *ifa;
-    std::string ip_address;
+    ConnectionInfo info{};
 
     if(getifaddrs(&ifaddr) == -1){
-        return "";
+        return info;
     }
 
     for(ifa = ifaddr; ifa!= nullptr; ifa = ifa->ifa_next){
@@ -91,13 +91,14 @@ std::string Helpers::get_local_ip(){
                 char host[INET_ADDRSTRLEN];
                 struct sockaddr_in *addr = (struct sockaddr_in*) ifa->ifa_addr;
                 inet_ntop(AF_INET, &(addr->sin_addr), host, INET_ADDRSTRLEN);
-                ip_address = host;
+                info.address =  host;
+                info.interface_name = ifa->ifa_name;
                 break;
             }
         }
     }
     freeifaddrs(ifaddr);
-    return ip_address;
+    return info;
 }
 
 std::string Helpers::resolve_receive_status(ReceiveStatus status){

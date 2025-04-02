@@ -12,7 +12,10 @@ PacketBuilder::PacketBuilder(ProtocolType protocol, std::string source_ip, in_po
     if(!inet_pton(AF_INET, source_ip.c_str(), &params.ip_src)){
         throw std::invalid_argument("[Source IP] Invalid IP address argument");
     }
-    params.port_src = source_port;
+    source_port_ = source_port;
+    params.port_src = source_port_;
+
+    std::cout << "PacketBuilder::PacketBuilder - Initialized with source port " << source_port << std::endl;
 
     packet.resize(sizeof(struct ip) + sizeof(struct tcphdr));
 }
@@ -26,7 +29,9 @@ PacketBuilder &PacketBuilder::set_source_ip(const std::string &ip_src) {
 
 PacketBuilder &PacketBuilder::set_destination_ip(const std::string& ip_dst) {
     if(!inet_pton(AF_INET, ip_dst.c_str(), &params.ip_dst)){
-        throw std::invalid_argument("[Destination IP] Invalid IP address argument");
+        std::stringstream ss;
+        ss << "[Destination IP] Invalid IP address argument: " << ip_dst;
+        throw std::invalid_argument(ss.str());
     };
     return *this;
 }
@@ -131,7 +136,7 @@ PacketBuilder& PacketBuilder::build_ip_header(){
 PacketBuilder& PacketBuilder::build_tcp_header(){
     auto *tcp_header = (struct tcphdr*) (packet.data() + sizeof(struct ip));
 
-    if(params.port_src == 0) {
+    if(params.port_src == 0 || source_port_ == 0) {
         params.port_src = random_port();
     }
 

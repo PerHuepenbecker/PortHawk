@@ -24,7 +24,7 @@ private:
     // to change the source ip here for some advanced scanning setup with possible redirections.
 
     std::string source_ip;
-    in_port_t source_port;
+    in_port_t source_port_;
 
     // Packet buffer
     std::vector<uint8_t> packet_buffer;
@@ -49,9 +49,11 @@ private:
     } params;
 
     uint8_t set_protocol_type(ProtocolType protocol);
-    uint16_t random_port();
-    uint16_t random_seq_number();
 
+    // refactored to public methods to allow parent objects a unified call to the random port assignment method
+    // uint16_t random_port();
+    uint16_t random_seq_number();
+    uint16_t random_port();
     PacketBuilder& update_ip_header(size_t payload_len);
     PacketBuilder& update_tcp_checksum(size_t );
 
@@ -82,6 +84,7 @@ public:
 
 
     PacketBuilder& add_payload(const std::vector<uint8_t> &payload);
+
 
     std::vector<uint8_t> build();
 };
