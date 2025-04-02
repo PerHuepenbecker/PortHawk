@@ -106,7 +106,6 @@ void PcapReceiver::process_packet(const struct pcap_pkthdr *header, const u_char
 
     std::cout << "Response from address " << address_buffer.data() << std::endl;
 
-
     if(tcp_header == nullptr){
         std::cout << "TCP Header == NULL";
     } else{
@@ -115,6 +114,14 @@ void PcapReceiver::process_packet(const struct pcap_pkthdr *header, const u_char
         std::cout << "Dest port: " << ntohs(tcp_header->th_dport) << std::endl;
     }
 
+    RawScanResult raw_result = {
+            .source_ip = ip_header->ip_src,
+            .sourcePort = tcp_header->th_sport,
+            .protocol = ip_header->ip_p,
+            .tcp_flags = tcp_header->th_flags,
+    };
+
+    raw_queue_ptr->push(raw_result);
 }
 
 PcapReceiver::PcapReceiver(const std::string filtering_rule, bool debug):filtering_rule(filtering_rule), debug_mode(debug) {}
@@ -123,44 +130,42 @@ PcapReceiver::~PcapReceiver() {
     stop();
 }
 
-bool PcapReceiver::start(const std::string& interface){
+bool PcapReceiver::start(ConnectionInfo& connection_info){
     if (running) return true;
-
-    if (interface.empty()){
-        std::cerr << "No interface specified" << std::endl;
-        return false;
-    }
 
     if (filtering_rule.empty()){
         std::cerr << "No filtering rule specified" << std::endl;
         return false;
     }
 
-    if(_source_port == 0){
+    /*
+     * if(_source_port == 0){
         std::cerr << "No source port specified" << std::endl;
         return false;
     }
+     */
 
     if (debug_mode){
         std::cout << "------------------------------------------------" << std::endl;
-        std::cout << "[PcapReceiver::start] Starting pcap receiver on interface: " << interface << std::endl;
+        std::cout << "[PcapReceiver::start] Starting pcap receiver on interface: " << connection_info.interface_name << std::endl;
         std::cout << "[PcapReceiver::start] Filtering rule: " << filtering_rule << std::endl;
         std::cout << "------------------------------------------------" << std::endl;
     }
 
     char errbuf[PCAP_ERRBUF_SIZE];
-    pcap_handler = pcap_open_live(interface.c_str(), BUFSIZ, 1, 100, errbuf);
+    pcap_handler = pcap_open_live(connection_info.interface_name.c_str(), BUFSIZ, 1, 100, errbuf);
 
     if(!pcap_handler){
         std::cerr << "Failed to open pcap_handler" << std::endl;
         return false;
     }
 
-    //std::string filter = "host " + filtering_rule;
+    // Idea of implementing an additional port based filtering solution here. Currently out of scope for IP filtering with
+    // standard behaviour of random source port assignment per scanned address
 
-    std::cout << "Source port: " << _source_port << std::endl;
-    filtering_rule = "dst port " + std::to_string(_source_port);
-    std::cout << "Filtering rule: " << filtering_rule << std::endl;
+    //std::cout << "Source port: " << _source_port << std::endl;
+    //filtering_rule = "dst port " + std::to_string(_source_port);
+    //std::cout << "Filtering rule: " << filtering_rule << std::endl;
 
     struct bpf_program fp;
     if(pcap_compile(pcap_handler, &fp, filtering_rule.c_str(), 0, INADDR_ANY) == -1){
@@ -229,4 +234,8 @@ std::vector<ScanResult> PcapReceiver::get_results(const std::string& target_ip){
 
 void PcapReceiver::set_source_port(in_port_t source_port) {
     _source_port = source_port;
+}
+
+void PcapReceiver::set_raw_queue(std::shared_ptr<ThreadSafeQueue<RawScanResult>> raw_queue) {
+    raw_queue_ptr = raw_queue;
 }
