@@ -9,7 +9,7 @@
 #include <queue>
 
 // Header only implementation of a simple thread safe queue. Decided for this mutex approach
-// because of complexity reasons. Due to natural network delay the mutex is an acceptable option
+// because of complexity reasons. Due to unavoidable network delay the mutex is an acceptable option
 // for the thread synchronization
 template <typename T>
 class ThreadSafeQueue {

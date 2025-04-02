@@ -25,47 +25,36 @@
     return packet;
 }
 
+std::pair<std::string, ScanResult> SynScan::interpret_response(RawScanResult&& rawScan) {
 
-ScanResult SynScan::interpret_response(const std::vector<uint8_t> &response_packet, ReceiveStatus status, in_port_t target_port) {
-    if(status == TIMEOUT){
-        return ScanResult{target_port, PortStatus::FILTERED, status};
+    auto scan = rawScan;
+    std::array<char, INET6_ADDRSTRLEN> address_buffer{};
+    PortStatus status;
+
+    in_port_t checked_port = ntohs(scan.sourcePort);
+
+    if(!inet_ntop(AF_INET, &scan.source_ip.s_addr, address_buffer.data(), INET_ADDRSTRLEN)){
+        throw std::invalid_argument("[SynScan::interpret_response] Bad IP received");
     }
 
-
-    std::cout << "\tDEBUG" << std::endl;
-    std::cout <<  std::endl;
-    for(size_t i = 0; i < response_packet.size(); i++){
-        std::cout << response_packet[i] << " ";
-        if(i % 20 == 0){
-            std::cout << std::endl;
-        }
-    }
-    std::cout <<  std::endl;
-    std::cout <<  std::endl;
-
-
-
-    auto* ip_header = reinterpret_cast<const struct ip*>(response_packet.data());
-    size_t ip_header_len = ip_header->ip_hl * 4;
-    auto* tcp_header = reinterpret_cast<const struct tcphdr*>(response_packet.data()+ip_header_len);
-
-    uint16_t response_port = ntohs(tcp_header->th_sport);
-
-    if(response_port != target_port) {
-
-        std::cout << "Ports dont match up"  << std::endl;
-        std::cout << "Expected: " << target_port << "Received: " << response_port << std::endl;
-
-        return ScanResult {target_port, PortStatus::UNKNOWN, status};
+    // Check for TCP flags sent in response
+    switch(rawScan.tcp_flags){
+        // ACK
+        case 0x12:
+            status = OPEN;
+            break;
+        // RST
+        case 0x14:
+            status = CLOSED;
+            break;
+        // Default case - only for malformed response packets
+        default:
+            status = UNKNOWN;
     }
 
-    if((tcp_header->th_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
-        return ScanResult {target_port, PortStatus::OPEN, status};
-    }
+    return std::make_pair(address_buffer.data(), ScanResult{.port = checked_port, .status_port = status});
+}
 
-    if (tcp_header->th_flags & TH_RST) {
-        return ScanResult {target_port, PortStatus::CLOSED, status};
-    }
-
-    return ScanResult {target_port, PortStatus::FILTERED, status};
+ProtocolType SynScan::get_protocol_type() const {
+    return ProtocolType::TCP;
 }

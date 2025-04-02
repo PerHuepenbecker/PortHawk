@@ -11,7 +11,8 @@
 class SynScan: public ScanStrategy {
 public:
     [[nodiscard]] std::vector<uint8_t> build_packet(PacketBuilder& packetBuilder, const std::string &target, uint16_t port) override;
-    ScanResult  interpret_response(const std::vector<uint8_t> &response_packet, ReceiveStatus status ,in_port_t target_port) override;
+    std::pair<std::string, ScanResult> interpret_response(RawScanResult&& rawScan) override;
+    virtual ProtocolType get_protocol_type() const override;
 };
 
 

@@ -5,12 +5,14 @@
 #ifndef DOORSCAN_SCANRESULT_H
 #define DOORSCAN_SCANRESULT_H
 
-#include "../../Helpers/Helpers.h"
-#include "../PortStatus.h"
+#include "../../Helpers/helpers.h"
+#include "../../Helpers/PortStatus.h"
 
 typedef struct{
+
     in_port_t port;
-    PortStatus status;
+    PortStatus status_port;
+
 } ScanResult;
 
 

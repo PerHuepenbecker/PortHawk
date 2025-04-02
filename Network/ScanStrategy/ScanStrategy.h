@@ -9,12 +9,15 @@
 #include "../PacketBuilder.h"
 #include "../../Helpers/PortStatus.h"
 #include "../Datastructures/ScanResult.h"
+#include "../Datastructures/RawScanResult.h"
+#include "../ProtocolType.h"
 
 class ScanStrategy {
 public:
     virtual ~ScanStrategy() = default;
     [[nodiscard]] virtual std::vector<uint8_t> build_packet(PacketBuilder& packet_builder, const std::string &target, uint16_t port) = 0;
-    virtual ScanResult interpret_response(const std::vector<uint8_t> &response_packet, ReceiveStatus status,in_port_t target_port) = 0;
+    virtual std::pair<std::string, ScanResult>  interpret_response(RawScanResult&& rawScan) = 0;
+    virtual ProtocolType get_protocol_type() const = 0;
 };
 
 
