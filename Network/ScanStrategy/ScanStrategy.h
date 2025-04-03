@@ -8,8 +8,8 @@
 #include <vector>
 #include "../PacketBuilder.h"
 #include "../../Helpers/PortStatus.h"
-#include "../Datastructures/ScanResult.h"
-#include "../Datastructures/RawScanResult.h"
+#include "../../Datastructures/ScanResult.h"
+#include "../../Datastructures/RawScanResult.h"
 #include "../ProtocolType.h"
 
 class ScanStrategy {

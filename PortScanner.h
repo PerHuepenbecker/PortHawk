@@ -6,9 +6,9 @@
 #define DOORSCAN_PORTSCANNER_H
 
 #include <sstream>
-#include "Network/Datastructures/ThreadSafeQueue.h"
-#include "Network/Datastructures/RawScanResult.h"
-#include "Network/Datastructures/ScanResult.h"
+#include "Datastructures/ThreadSafeQueue.h"
+#include "Datastructures/RawScanResult.h"
+#include "Datastructures/ScanResult.h"
 #include "Network/PcapReceiver/PcapReceiver.h"
 #include "Network/RawSocket/RawSocket.h"
 #include "Network/ScanStrategy/ScanTypes.h"

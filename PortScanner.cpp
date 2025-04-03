@@ -146,7 +146,7 @@ void PortScanner::display_results(){
         return (count == 1)? "port" : "ports";
     };
 
-    std::cout << "-- Scan Results --" << "\n";
+    std::cout << "\n-- Scan Results --" << "\n";
     for(const auto & element: scan_results){
         closed_ports = 0; filtered_ports = 0; unknown_ports = 0;
         std::cout << "+++++++++++++++++++++++++++++++++++++\n";

@@ -6,9 +6,9 @@
 #define DOORSCAN_PCAPRECEIVER_H
 
 #include "../../Helpers/helpers.h"
-#include "../Datastructures/RawScanResult.h"
-#include "../Datastructures/ScanResult.h"
-#include "../Datastructures/ThreadSafeQueue.h"
+#include "../../Datastructures/RawScanResult.h"
+#include "../../Datastructures/ScanResult.h"
+#include "../../Datastructures/ThreadSafeQueue.h"
 
 class PcapReceiver {
 private:
