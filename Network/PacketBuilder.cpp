@@ -15,8 +15,6 @@ PacketBuilder::PacketBuilder(ProtocolType protocol, std::string source_ip, in_po
     source_port_ = source_port;
     params.port_src = source_port_;
 
-    std::cout << "PacketBuilder::PacketBuilder - Initialized with source port " << source_port << std::endl;
-
     packet.resize(sizeof(struct ip) + sizeof(struct tcphdr));
 }
 
@@ -156,8 +154,6 @@ PacketBuilder& PacketBuilder::build_tcp_header(){
     tcp_header->th_sum = 0;
     tcp_header->th_urp = 0;
 
-    std::cout << "TCP TH_OFF = " << tcp_header->th_off << std::endl;
-
     tcp_header->th_sum = Helpers::tcp_checksum((struct ip*) packet.data(), tcp_header, params.payload);
 
 
@@ -174,8 +170,6 @@ PacketBuilder& PacketBuilder::build_icmp_header(){
 
 std::vector<uint8_t> PacketBuilder::build() {
 
-    std::cout << "[BUILD] Packet size: " << packet.size() << std::endl;
-
     return packet;
 }
 
@@ -190,12 +184,8 @@ uint16_t PacketBuilder::random_seq_number() {
 PacketBuilder &PacketBuilder::add_payload(const std::vector<uint8_t> &payload) {
     size_t header_size = sizeof(struct ip) + sizeof(struct tcphdr);
 
-    std::cout << "Payload size: " << payload.size() << std::endl;
-    std::cout << "Packet size: " << packet.size() << std::endl;
-
     packet.resize(header_size+payload.size());
 
-    std::cout << "Packet size after: " << packet.size() << std::endl;
     // Using efficient C functions for buffer management
 
     memset(packet.data() + header_size, 0, payload.size());

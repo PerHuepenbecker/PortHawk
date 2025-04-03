@@ -79,31 +79,17 @@ void PcapReceiver::process_packet(const struct pcap_pkthdr *header, const u_char
 
     switch(ip_header->ip_p){
         case 0x06:
-            tcp_header = reinterpret_cast<const struct tcphdr*>(packet + sizeof(struct ether_header) + sizeof(struct ip));
+            tcp_header = reinterpret_cast<const struct tcphdr*>(packet + ip_header_offset + sizeof(struct ip));
             break;
         case 0x1:
             // Implement ICMP detection for UDP port scanning in the future
             break;
         default:
-            std::cout << "[PcapReceiver::process_packet] Unknown protocol type" << std::endl;
-            std::cout << "[PcapReceiver::process_packet] Protocol type: " << ntohs(ip_header->ip_p) << std::endl;
-
-            for (const u_int8_t* i = packet+ip_header_offset; i < packet+ip_header_offset+sizeof(ip); i++) {
-                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)(*i) << " ";
-            }
 
             return;
     }
 
-    tcp_header = reinterpret_cast<const struct tcphdr*>(packet + ip_header_offset + sizeof(struct ip));
-
-    if(tcp_header == nullptr){
-        std::cout << "TCP Header == NULL";
-    } else{
-        std::cout << "TCP header flags: 0x" << std::hex << (int)tcp_header->th_flags << std::dec << std::endl;
-        std::cout << "Source port: " << ntohs(tcp_header->th_sport) << std::endl;
-        std::cout << "Dest port: " << ntohs(tcp_header->th_dport) << std::endl;
-    }
+    //tcp_header = reinterpret_cast<const struct tcphdr*>(packet + ip_header_offset + sizeof(struct ip));
 
     RawScanResult raw_result = {
             .source_ip = ip_header->ip_src,
@@ -211,7 +197,7 @@ void PcapReceiver::register_target(const std::string& target_ip){
         filtering_rule += target_ip;
     } else {
         filtering_rule += " or src host ";
-        filtering_rule += "target_ip";
+        filtering_rule += target_ip;
     }
 
     if (debug_mode){

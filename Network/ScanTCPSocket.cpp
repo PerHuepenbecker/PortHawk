@@ -44,8 +44,6 @@ void ScanTCPSocket::assign_target_port(unsigned short first, unsigned short last
     for(unsigned short i = first; i <= last; i++){
         target_list_ports_.push_back(i);
     }
-
-    std::cout << "Target port assigned" << std::endl;
 }
 
 bool ScanTCPSocket::scan() {
@@ -56,7 +54,6 @@ bool ScanTCPSocket::scan() {
 
     for (const auto port: target_list_ports_) {
 
-        std::cout << "Scanning " << port << std::endl;
 
         packet_buffer_ = scan_strategy_->build_packet(*packet_builder_, target_IPv4, port);
 

@@ -144,9 +144,6 @@ bool RawSocket::send_packet(const std::vector<uint8_t> &packet, const std::strin
         return false;
     }
 
-
-    std::cout<< "Sent!" << std::endl;
-
     return true;
 }
 

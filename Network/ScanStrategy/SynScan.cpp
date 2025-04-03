@@ -21,7 +21,6 @@
             .build_tcp_header()
             .build();
 
-    std::cout << "[SYN_STRATEGY] Packet size: " << packet.size() << std::endl;
     return packet;
 }
 
