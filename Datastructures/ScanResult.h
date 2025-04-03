@@ -5,8 +5,8 @@
 #ifndef DOORSCAN_SCANRESULT_H
 #define DOORSCAN_SCANRESULT_H
 
-#include "../../Helpers/helpers.h"
-#include "../../Helpers/PortStatus.h"
+#include "../Helpers/helpers.h"
+#include "../Helpers/PortStatus.h"
 
 typedef struct{
 

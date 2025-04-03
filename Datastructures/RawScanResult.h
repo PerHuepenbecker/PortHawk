@@ -5,7 +5,7 @@
 #ifndef DOORSCAN_RAWSCANRESULT_H
 #define DOORSCAN_RAWSCANRESULT_H
 
-#include "../../Helpers/helpers.h"
+#include "../Helpers/helpers.h"
 
 typedef struct{
 

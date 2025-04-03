@@ -5,7 +5,7 @@
 #ifndef DOORSCAN_THREADSAFEQUEUE_H
 #define DOORSCAN_THREADSAFEQUEUE_H
 
-#include "../../Helpers/helpers.h"
+#include "../Helpers/helpers.h"
 #include <queue>
 
 // Header only implementation of a simple thread safe queue. Decided for this mutex approach
