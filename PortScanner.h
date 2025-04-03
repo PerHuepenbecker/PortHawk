@@ -53,6 +53,7 @@ public:
     void add_target_port(in_port_t port);
 
     void scan();
+    void display_results();
 
     void debug_output();
 };
